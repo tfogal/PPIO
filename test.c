@@ -120,6 +120,13 @@ START_TEST(test_simple)
 }
 END_TEST
 
+START_TEST(test_open_nonexistent_file)
+{
+  void* range = open_range(".this-file-does-not-exist", PPIO_RDONLY, 0, 19);
+  fail_unless(range == NULL, "open_range should have failed.");
+}
+END_TEST
+
 START_TEST(test_invalid_number_of_bytes)
 {
   void* range = open_range(testfile, PPIO_RDONLY, 0, 0);
@@ -136,15 +143,25 @@ START_TEST(test_invalid_finished_addr)
 }
 END_TEST
 
+START_TEST(test_null_finished_addr)
+{
+  void* garbage = NULL;
+  finished(garbage);
+  fail_unless(errno == EFAULT, "finished did not detect a bad address");
+}
+END_TEST
+
 Suite* ppio_suite()
 {
   Suite* s = suite_create("PPIO");
   TCase* core = tcase_create("Core");
   tcase_add_test(core, test_nothing);
   tcase_add_test(core, test_simple);
+  tcase_add_test(core, test_open_nonexistent_file);
   tcase_add_test(core, test_invalid_number_of_bytes);
   tcase_add_test(core, test_invalid_finished_addr);
-  tcase_add_checked_fixture(core, setup, teardown);
+  tcase_add_test(core, test_null_finished_addr);
+  tcase_add_unchecked_fixture(core, setup, teardown);
 
   suite_add_tcase(s, core);
   return s;
