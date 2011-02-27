@@ -60,21 +60,6 @@ static void full_write(int fd, const void* buf, size_t bytes)
   } while(offset < bytes);
 }
 
-START_TEST(test_nothing)
-{
-}
-END_TEST
-
-START_TEST(test_simple)
-{
-  void* range = open_range("suite", PPIO_RDONLY, 0, 42);
-  fail_if(errno != 0, "open_range set errno");
-  fail_if(range == NULL, "Could not map 'suite'!");
-  finished(range);
-  fail_if(errno != 0, "finished set errno to %d", errno);
-}
-END_TEST
-
 /* the return variable must be freed! */
 static char* random_data(size_t len)
 {
@@ -102,8 +87,9 @@ void setup()
   int fd;
   char* data = random_data(16384);
 
-  fd = open(testfile, O_WRONLY, O_CREAT | O_TRUNC);
+  fd = open(testfile, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR|S_IWUSR);
   if(fd < 0) {
+    perror("open");
     error("could not create test data file");
   }
   for(size_t i=0; i < 16; ++i) {
@@ -119,12 +105,29 @@ void teardown()
   }
 }
 
+START_TEST(test_nothing)
+{
+}
+END_TEST
+
+START_TEST(test_simple)
+{
+  void* range = open_range(testfile, PPIO_RDONLY, 0, 42);
+  fail_if(errno != 0, "open_range set errno");
+  fail_if(range == NULL, "Could not map 'suite'!");
+  finished(range);
+  fail_if(errno != 0, "finished set errno to %d", errno);
+}
+END_TEST
+
+
 Suite* ppio_suite()
 {
   Suite* s = suite_create("PPIO");
   TCase* core = tcase_create("Core");
   tcase_add_test(core, test_nothing);
   tcase_add_test(core, test_simple);
+  tcase_add_checked_fixture(core, setup, teardown);
 
   suite_add_tcase(s, core);
   return s;
