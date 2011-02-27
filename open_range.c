@@ -48,9 +48,16 @@ void* open_range(const char* filename, enum ppio_access_mode access,
     int saved_errno = errno;
     close(fd);
     errno = saved_errno;
+    return NULL;
   }
 
   struct ppio_mapping_t* mapping = calloc(1, sizeof(struct ppio_mapping_t));
+  if(mapping == NULL) {
+    munmap(map, end-begin);
+    close(fd);
+    errno = ENOMEM;
+    return NULL;
+  }
   mapping->fd = fd;
   mapping->base_address = map;
   mapping->length = end-begin;

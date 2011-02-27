@@ -114,12 +114,27 @@ START_TEST(test_simple)
 {
   void* range = open_range(testfile, PPIO_RDONLY, 0, 42);
   fail_if(errno != 0, "open_range set errno");
-  fail_if(range == NULL, "Could not map 'suite'!");
+  fail_if(range == NULL, "Could not map test data file!");
   finished(range);
   fail_if(errno != 0, "finished set errno to %d", errno);
 }
 END_TEST
 
+START_TEST(test_invalid_number_of_bytes)
+{
+  void* range = open_range(testfile, PPIO_RDONLY, 0, 0);
+  fail_unless(errno != 0, "open_range should have set errno.");
+  fail_unless(range == NULL, "open_range should have failed.");
+}
+END_TEST
+
+START_TEST(test_invalid_finished_addr)
+{
+  void* garbage = (void*)0xdeadbeef;
+  finished(garbage);
+  fail_unless(errno == EFAULT, "finished did not detect a bad address");
+}
+END_TEST
 
 Suite* ppio_suite()
 {
@@ -127,6 +142,8 @@ Suite* ppio_suite()
   TCase* core = tcase_create("Core");
   tcase_add_test(core, test_nothing);
   tcase_add_test(core, test_simple);
+  tcase_add_test(core, test_invalid_number_of_bytes);
+  tcase_add_test(core, test_invalid_finished_addr);
   tcase_add_checked_fixture(core, setup, teardown);
 
   suite_add_tcase(s, core);

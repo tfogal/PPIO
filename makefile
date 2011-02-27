@@ -1,4 +1,4 @@
-CFLAGS=-Wall -Wextra -ansi -std=c99
+CFLAGS=-g -Wall -Wextra -ansi -std=c99
 OBJ=open_range.o finished.o test.o ppio.o
 
 all: $(OBJ)
