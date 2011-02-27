@@ -27,7 +27,11 @@ void p_hash_remove(const void* from)
   if(!e) { return; } /* not found. */
 
   if(e->prev) { e->prev->next = e->next; }
-  if(e->next) { e->next->prev = e->prev; }
+  if(e->next) {
+    e->next->prev = e->prev;
+  } else {
+    e->next = NULL;
+  }
   free(e);
 }
 
@@ -36,5 +40,7 @@ void* p_hash_lookup(const void* from)
   struct mapping* e = head;
   while(e && e->from != from) { e = e->next; }
 
-  return e->to;
+  if(e) { return e->to; }
+
+  return NULL;
 }
