@@ -60,6 +60,7 @@ void* open_range(const char* filename, enum ppio_access_mode access,
   }
   mapping->fd = fd;
   mapping->base_address = map;
+  mapping->offset = begin;
   mapping->length = end-begin;
   p_hash_add(map, mapping);
   return map;
